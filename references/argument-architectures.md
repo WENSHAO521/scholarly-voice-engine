@@ -67,6 +67,58 @@ thesis → key distinction → argument for thesis → strongest objection →
 response/qualification → refined thesis
 ```
 
+### Economics
+```text
+economic question → model/identification strategy → institutional
+assumptions → estimand → data → results → robustness → mechanism →
+welfare/policy implication
+```
+See the Economics subsection of `disciplines/social-sciences.md` and
+`research-design-matrix.md` for the identification-strategy rows (DiD, RDD,
+IV, natural experiment) this architecture draws on.
+
+## Additional reusable patterns
+
+Not tied to one discipline family — select the pattern the material actually
+calls for, independent of the family architectures above:
+
+```text
+anomaly → competing explanations → test → adjudication
+```
+A genuine puzzle with multiple live explanations, resolved by evidence that
+favors one — common in natural science and economics controversies.
+
+```text
+concept → distinction → mechanism → boundary condition
+```
+Building or refining a concept before using it — common in conceptual
+articles and theory-building sections across social science and management.
+
+```text
+authority → interpretive conflict → application → consequence
+```
+An alternate, more compressed form of the law/doctrinal architecture above,
+useful when the interpretive conflict itself (rather than a single
+progression toward one interpretation) is the paper's main subject.
+
+```text
+premise → objection → refinement → conclusion
+```
+A compact philosophical/normative pattern for shorter arguments that don't
+need the full thesis→distinction→argument→objection→qualification cycle.
+
+```text
+clinical uncertainty → design → finding → clinical interpretation
+```
+For clinical/health writing shorter than the full architecture above (e.g., a
+research letter or brief report).
+
+```text
+textual problem → competing reading → close evidence → reinterpretation
+```
+For literary/humanistic interpretation shorter than a full close-reading
+article.
+
 ## Paragraph- and section-level rhythm patterns
 
 Use these as building blocks inside any of the above architectures — they are
@@ -90,17 +142,13 @@ Asymmetry).
 ## Claim calibration by architecture
 
 Match the architecture's evidentiary apparatus to the claim type it is entitled to
-produce:
-
-```text
-descriptive | associational | causal | mechanistic | interpretive |
-normative | predictive | formal
-```
-
-An experimental-science architecture with only correlational data supports
-`associational`, not `causal`, claims — no amount of confident prose narrows that
-gap (see `disciplines/*.md` for field-specific guardrails, e.g. clinical
-association/causal/utility separation).
+produce — see `claim-calibration.md` for the full taxonomy and invariant, and
+`research-design-matrix.md` for how the specific research design (not just the
+discipline family) sets the claim ceiling. An experimental-science architecture
+with only correlational data supports `associational`, not `causal`, claims —
+no amount of confident prose narrows that gap (see `disciplines/*.md` for
+field-specific guardrails, e.g. clinical association/causal/utility
+separation).
 
 ## Contribution types
 

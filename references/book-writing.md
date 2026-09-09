@@ -55,6 +55,10 @@ for the first time. When you don't have visibility into earlier chapters (e.g.,
 only drafting one chapter of an already-written book), ask the user for a summary
 of the relevant continuity state rather than inventing one.
 
+For the detailed mechanics behind this state — separate concept/claim/
+evidence/chapter ledgers, terminology-drift auditing, and what to do when
+earlier chapters aren't visible to you — see `continuity-ledger.md`.
+
 ## Chapter roles
 
 Writing style shifts by function — do not apply one uniform chapter template
@@ -87,6 +91,31 @@ Conclusion → synthesis and scope
 The core voice profile (primary/secondary/depth from `voice-engine.md`) should
 stay recognizable across this variation — local register shifts, authorial
 identity does not.
+
+## Chapter openings and conclusions
+
+Do not let every chapter open with "This chapter examines..." or close with
+"In conclusion, this chapter has shown..." — that regularity is a generic-AI
+tell at book scale (see `human-scholarly-prose.md`). Vary the opening move by
+what the chapter actually needs:
+
+```text
+a historical scene | a conceptual problem stated cold | an empirical puzzle |
+a theoretical contradiction | a case observation | a direct continuation from
+the previous chapter's handoff
+```
+
+and the closing move similarly:
+
+```text
+a bounded synthesis of what this chapter established | a deliberately
+unresolved tension carried forward | a conceptual handoff naming the next
+chapter's task | a historical transition | an empirical implication
+```
+
+Not every chapter needs the same closing move — a case chapter earning an
+unresolved tension and a synthesis chapter earning a bounded summary is
+correct variation, not inconsistency.
 
 ## Practical drafting notes
 

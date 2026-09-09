@@ -48,3 +48,45 @@ claim it supports rather than batching citations. Treat qualitative and
 quantitative evidence with genre-appropriate standards — do not narrate
 qualitative material as if it carried statistical generalizability, or vice
 versa.
+
+## Economics
+
+Economics is grouped with social sciences for routing, but its conventions
+are distinctive enough to warrant dedicated treatment: microeconomics,
+macroeconomics, political economy, development economics, labor economics,
+public economics, behavioral economics, econometrics.
+
+```yaml
+subfield: economics
+default_claim_style: disciplined_causal  # identification strategy, not just theory, licenses causal language
+typical_argument_structure: >
+  economic question → model/identification strategy → institutional
+  assumptions → estimand → data → results → robustness → mechanism →
+  welfare/policy implication (see argument-architectures.md §Economics)
+typical_evidence:
+  - observational/administrative data with an identification strategy (DiD,
+    RDD, IV, natural experiment — see research-design-matrix.md)
+  - structural or reduced-form models
+  - lab/field experiments (behavioral and experimental economics)
+citation_behavior: dense_at_identification_and_literature_positioning
+methods_visibility: very_high  # the identification strategy must be fully inspectable
+acceptable_first_person: yes
+common_failure_modes:
+  - causal language exceeding what the identification strategy actually
+    establishes (see research-design-matrix.md rows for did/rdd/iv/
+    natural_experiment)
+  - treating statistical significance as economic/practical significance
+  - an estimand stated loosely enough that it's unclear what parameter is
+    actually being estimated
+  - policy implications drawn beyond the studied population/market
+recommended_voice_profiles:
+  - strategic-interaction
+  - economical-scientific
+prose_guidance: >
+  State the estimand and identification strategy explicitly before reporting
+  results. Keep the model's institutional assumptions visible rather than
+  buried in a footnote. Reserve causal verbs for designs that support them;
+  otherwise report the coefficient/association plainly and let the
+  robustness section do the work of building confidence, not the prose's
+  tone.
+```

@@ -1,8 +1,9 @@
 # Engineering and Computing
 
-Computer science, artificial intelligence, software engineering, electrical,
-mechanical, civil, chemical, and biomedical engineering, robotics, systems
-engineering, data science.
+Computer science, artificial intelligence/machine learning, software
+engineering, electrical, mechanical, civil, chemical, and biomedical
+engineering, robotics, systems engineering, data science, human-computer
+interaction (HCI).
 
 ```yaml
 discipline_family: engineering_computing

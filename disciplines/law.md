@@ -1,7 +1,8 @@
 # Law
 
 Public law, private law, international law, comparative law, constitutional law,
-administrative law, criminal law, legal theory, law and society.
+administrative law, criminal law, legal theory, law and society, empirical
+legal studies.
 
 ```yaml
 discipline_family: law

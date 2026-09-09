@@ -17,6 +17,14 @@ Routing table from a user's stated or implied field to the discipline module(s) 
 | Arts & practice-based research | Music, performance studies, fine arts, design research, architecture, film studies, theatre, creative practice research | `disciplines/arts-design.md` |
 | Interdisciplinary | STS, digital humanities, computational social science, environmental humanities, bioethics, health humanities, urban studies, development studies, sustainability studies, complexity science, AI governance | `disciplines/interdisciplinary.md` + each contributing home discipline |
 
+**Economics, philosophy, and history** are grouped into `social-sciences.md`
+and `humanities.md` respectively for routing (they share those families'
+citation/evidence infrastructure), but each has distinctive-enough
+conventions to warrant a dedicated subsection within its family file —
+see the "Economics" heading in `disciplines/social-sciences.md` and the
+"Philosophy" / "History" headings in `disciplines/humanities.md`. Route to
+the family file as usual, then to the matching subsection.
+
 ## Inference procedure
 
 1. If the user states a field or journal, map it to a row above.

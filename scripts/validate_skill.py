@@ -28,8 +28,8 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 
-REQUIRED_TOP_LEVEL = ["SKILL.md", "README.md", "LICENSE", "CHANGELOG.md"]
-REQUIRED_DIRS = ["references", "disciplines", "evals", "scripts"]
+REQUIRED_TOP_LEVEL = ["SKILL.md", "README.md", "LICENSE", "CHANGELOG.md", "VERSION"]
+REQUIRED_DIRS = ["references", "disciplines", "evals", "scripts", "tests"]
 
 REQUIRED_DISCIPLINE_KEYS = [
     "discipline_family",
@@ -50,7 +50,14 @@ EVAL_FILES = [
     "evals/genre-cases.jsonl",
     "evals/voice-cases.jsonl",
     "evals/anti-generic-ai-cases.jsonl",
+    "evals/book-continuity-cases.jsonl",
+    "evals/integrity-cases.jsonl",
+    "evals/multilingual-cases.jsonl",
 ]
+
+MIN_TOTAL_EVAL_CASES = 100
+
+SIBLING_SKILLS = ("adaptive model router", "scholarly corpus builder", "journal fit engine")
 
 # Anti-generic-AI phrases this Skill tells the model to avoid overusing.
 # Flagged only outside of the files that intentionally *list* these phrases as
@@ -66,6 +73,9 @@ GENERIC_AI_PHRASES = [
 
 EXEMPT_FROM_PHRASE_SCAN = {
     "references/human-scholarly-prose.md",
+    "references/multilingual-writing.md",
+    "references/book-writing.md",
+    "references/review-writing.md",
     "evals/anti-generic-ai-cases.jsonl",
 }
 
@@ -175,10 +185,47 @@ def check_eval_fixtures() -> None:
             if "id" not in obj:
                 warn(f"{rel}:{i} case missing 'id' field")
             total_cases += 1
-    if total_cases < 40:
-        warn(f"only {total_cases} total eval cases found; spec target is >= 40")
+    if total_cases < MIN_TOTAL_EVAL_CASES:
+        warn(f"only {total_cases} total eval cases found; target is >= {MIN_TOTAL_EVAL_CASES}")
     else:
         print(f"[ok] {total_cases} eval cases across {len(EVAL_FILES)} fixture files")
+
+
+def check_version() -> None:
+    version_path = ROOT / "VERSION"
+    changelog_path = ROOT / "CHANGELOG.md"
+    if not version_path.is_file():
+        fail("VERSION file not found")
+        return
+    version = version_path.read_text(encoding="utf-8").strip()
+    if not re.match(r"^\d+\.\d+\.\d+$", version):
+        fail(f"VERSION content {version!r} is not a plain semver string")
+        return
+    if not changelog_path.is_file():
+        return
+    changelog = changelog_path.read_text(encoding="utf-8")
+    m = re.search(r"^## \[(\d+\.\d+\.\d+)\]", changelog, re.MULTILINE)
+    if not m:
+        warn("CHANGELOG.md has no '## [x.y.z]' heading to check VERSION against")
+        return
+    latest = m.group(1)
+    if latest != version:
+        fail(f"VERSION ({version}) does not match CHANGELOG.md's latest entry ({latest})")
+    else:
+        print(f"[ok] VERSION ({version}) matches CHANGELOG.md's latest entry")
+
+
+def check_integration_file() -> None:
+    path = ROOT / "references" / "integration.md"
+    if not path.is_file():
+        fail("references/integration.md not found")
+        return
+    text = path.read_text(encoding="utf-8").lower()
+    missing = [name for name in SIBLING_SKILLS if name not in text]
+    if missing:
+        fail(f"references/integration.md does not mention: {', '.join(missing)}")
+    else:
+        print("[ok] references/integration.md names all three sibling skills")
 
 
 def check_dogfood_prose() -> None:
@@ -220,6 +267,8 @@ def main() -> int:
     check_eval_fixtures()
     check_dogfood_prose()
     check_no_invented_quotations()
+    check_version()
+    check_integration_file()
 
     print()
     if warnings:

@@ -59,3 +59,29 @@ preferred rhetorical moves (how they open sections, how they close them,
    prefer fidelity to the author's voice even where it's mildly unconventional,
    as long as it doesn't violate discipline-specific integrity norms (e.g., a
    journal that strictly forbids first person).
+
+## Incremental updates
+
+When new author material arrives over time (a new manuscript, a corpus-
+builder refresh — see `corpus-profile-integration.md`), classify each trait
+as:
+
+```text
+stable | strengthening | weakening | new | uncertain
+```
+
+Require repeated, consistent evidence before reclassifying a `stable` trait
+as `weakening` or dropping it — a single anomalous manuscript (a co-authored
+piece, a deliberately different register for one venue) should not overwrite
+a long-established voice.
+
+## Learning from user edits (edit-diff learning)
+
+When the host authorizes comparing an AI-drafted passage against the user's
+own revision of it, extract recurring preferences from the diff rather than
+treating each edit as a one-off correction — e.g., the user consistently
+shortens introductions, consistently removes a specific hedge, consistently
+adds mechanism language, or consistently cuts a generic transition. Fold
+confirmed, repeated preferences into the working author profile for the rest
+of the task. This is calibration to the user's genuine preferences; it is not
+and must not be framed as evading any kind of detection.
