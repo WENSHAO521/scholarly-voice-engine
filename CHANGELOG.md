@@ -2,6 +2,34 @@
 
 All notable changes to this Skill are documented here.
 
+## [1.0.2] — 2026-09-09
+
+Closes one of the two compatibility gaps v1.0.1 documented rather than
+faked.
+
+### Added
+
+- `scripts/voice/continuity.py`'s `ContinuityLedger` now has
+  `to_dict()`/`from_dict()`, serializing to and restoring from a
+  `CONTINUITY_STATE_V1` envelope. Previously in-memory only, so it could
+  not actually be "passed between chapter-drafting sessions" as that
+  protocol's own description requires -- now it can. A restored ledger
+  still enforces the same concept-redefinition/claim-contradiction checks
+  as the original (verified by a round-trip test that a restored ledger
+  still raises `ContinuityConflict`). `voice_contract`/`evidence_ledger`/
+  `chapter_ledger`/`terminology`/`open_questions` round-trip opaquely --
+  stored and returned unchanged, not yet validated or acted on.
+- 6 new tests covering the round trip, conflict-detection survival, and
+  malformed-input rejection.
+
+### Still open
+
+- `JOURNAL_STYLE_CONTEXT_V1` vs. this Skill's `journal_context` shape
+  mismatch (see references/integration.md) remains unresolved --
+  `journal-fit-engine` v0.2.0 still doesn't emit either that protocol or
+  an adaptation-target shape in code (its own fit logic covers evidence
+  lookup and one fit dimension so far, not adaptation-target output).
+
 ## [1.0.1] — 2026-09-09
 
 Compatibility audit against `scholarly-agent-suite`'s protocol schemas and

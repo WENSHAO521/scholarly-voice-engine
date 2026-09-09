@@ -63,5 +63,65 @@ class TerminologyAuditTests(unittest.TestCase):
         self.assertEqual(ledger.check_term_variants("resilience", ["resilience", "resilience"]), [])
 
 
+class ContinuityStateV1SerializationTests(unittest.TestCase):
+    """CONTINUITY_STATE_V1 round-trip (scholarly-agent-suite/protocols/
+    continuity-state.schema.json) -- the whole point of that protocol is
+    passing this state between chapter-drafting sessions, so a lossy
+    round-trip would defeat it."""
+
+    def test_empty_ledger_round_trips(self):
+        ledger = ContinuityLedger()
+        data = ledger.to_dict()
+        self.assertEqual(data["protocol"], "CONTINUITY_STATE_V1")
+        self.assertEqual(data["voice_contract"], {})
+        self.assertEqual(data["concept_ledger"], [])
+        restored = ContinuityLedger.from_dict(data)
+        self.assertEqual(restored.concepts, {})
+        self.assertEqual(restored.claims, {})
+
+    def test_concepts_and_claims_round_trip(self):
+        ledger = ContinuityLedger()
+        ledger.add_concept("resilience", "capacity to absorb shock", chapter=2)
+        ledger.add_claim("mechanism_x_operative", "supported", chapter=3)
+        restored = ContinuityLedger.from_dict(ledger.to_dict())
+        self.assertEqual(restored.concepts["resilience"].definition, "capacity to absorb shock")
+        self.assertEqual(restored.concepts["resilience"].chapter, 2)
+        self.assertEqual(restored.claims["mechanism_x_operative"].stance, "supported")
+
+    def test_conflict_detection_still_works_after_restore(self):
+        """A restored ledger must enforce the same continuity rules as the
+        original -- serialization must not silently drop the guarantee."""
+        ledger = ContinuityLedger()
+        ledger.add_concept("resilience", "capacity to absorb shock", chapter=2)
+        restored = ContinuityLedger.from_dict(ledger.to_dict())
+        with self.assertRaises(ContinuityConflict):
+            restored.add_concept("resilience", "a completely different definition", chapter=9)
+
+    def test_pass_through_fields_round_trip_even_when_unused(self):
+        data = {
+            "protocol": "CONTINUITY_STATE_V1",
+            "voice_contract": {"formality": "high"},
+            "concept_ledger": [],
+            "claim_ledger": [],
+            "evidence_ledger": [{"source": "smith2020"}],
+            "chapter_ledger": [{"chapter": 1, "title": "Introduction"}],
+            "terminology": {"canonical": "resilience"},
+            "open_questions": ["does chapter 4 resolve the mechanism debate?"],
+        }
+        restored = ContinuityLedger.from_dict(data)
+        self.assertEqual(restored.to_dict(), data)
+
+    def test_wrong_protocol_rejected(self):
+        with self.assertRaises(ValueError):
+            ContinuityLedger.from_dict({"protocol": "SOMETHING_ELSE_V1", "voice_contract": {}})
+
+    def test_malformed_concept_ledger_entry_rejected(self):
+        with self.assertRaises(ValueError):
+            ContinuityLedger.from_dict({
+                "protocol": "CONTINUITY_STATE_V1", "voice_contract": {},
+                "concept_ledger": [{"term": "resilience"}],  # missing definition/chapter
+            })
+
+
 if __name__ == "__main__":
     unittest.main()
