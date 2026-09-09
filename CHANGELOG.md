@@ -2,6 +2,53 @@
 
 All notable changes to this Skill are documented here.
 
+## [1.1.0] — 2026-09-09
+
+Closes the other compatibility gap v1.0.1/v1.0.2 documented rather than
+faked: `JOURNAL_STYLE_CONTEXT_V1` was declared as "not yet reconciled" in
+`references/integration.md` because journal-fit-engine did not yet emit it
+and this Skill had no consumer for it. journal-fit-engine v0.3.0 now emits
+it (`jfe.style_context`); this release adds the consumer.
+
+### Added
+
+- `scripts/voice/journal_context.py` — `from_journal_style_context_v1()`
+  validates an incoming envelope (protocol, required fields, dict-typed
+  buckets, freshness enum) and raises `JournalContextError` rather than
+  coercing a malformed one; `apply_journal_style_context()` folds it into
+  an existing voice-precedence layer set. `official_requirements` is
+  returned as `hard_requirements`, verbatim, never confidence-gated and
+  never merged into the precedence-resolved layers — it sits above
+  author/discipline/journal/historical precedence entirely
+  (`journal-style-adaptation.md`). `observed_patterns` is fed into
+  `profile_merge.resolve_voice_precedence()` as the existing "journal"
+  layer, reusing that function's tested confidence-gating rather than
+  building a second precedence mechanism; confidence is set from
+  `freshness` (`current`→high, `aging`→moderate, `stale` or **absent**
+  →low — a missing freshness is never silently treated as current). Every
+  evidence gap (no official_requirements, no observed_patterns, stale or
+  absent freshness) produces a `limitations` entry that is preserved
+  through to the caller, never summarized away.
+- 18 new tests, including explicit regressions for: a stale/absent
+  freshness yielding to a lower-precedence layer instead of winning on
+  weak evidence; the author layer still beating a "journal" layer of any
+  freshness; and `official_requirements`/`observed_patterns` never
+  leaking into each other's output path after a full
+  validate→apply round trip.
+- `references/integration.md`'s `JOURNAL_STYLE_CONTEXT_V1` compatibility
+  entry updated from "not yet reconciled" to reconciled, describing the
+  two-path handling above.
+- `references/journal-style-adaptation.md` now documents the
+  `JOURNAL_STYLE_CONTEXT_V1` handoff as the primary path, with the older
+  compact/full adaptation-target shapes kept as a secondary path for a
+  caller that has already derived writing-level adjustments itself.
+
+### Unchanged (by design)
+
+- The existing `journal_context`/`validate_journal_target()` compact/full
+  adaptation-target consumption path (`scripts/voice/profile_schema.py`)
+  is untouched — the two input shapes are not mutually exclusive.
+
 ## [1.0.2] — 2026-09-09
 
 Closes one of the two compatibility gaps v1.0.1 documented rather than
