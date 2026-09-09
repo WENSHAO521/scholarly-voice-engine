@@ -20,6 +20,17 @@ class ConfidenceTests(unittest.TestCase):
     def test_valid(self):
         self.assertEqual(ps.validate_confidence("high"), [])
 
+    def test_moderate_is_valid(self):
+        # Matches scholarly-corpus-builder's actual vocabulary and the
+        # Suite's SCHOLARLY_PROFILE_V1 schema (confidence enum), not "medium".
+        self.assertEqual(ps.validate_confidence("moderate"), [])
+
+    def test_medium_is_rejected(self):
+        # "medium" was this module's own earlier (incorrect) term; a real
+        # corpus-builder profile never sends it, so it must not validate.
+        errors = ps.validate_confidence("medium")
+        self.assertEqual(len(errors), 1)
+
     def test_invalid_percentage_rejected(self):
         errors = ps.validate_confidence("73%")
         self.assertEqual(len(errors), 1)
@@ -82,6 +93,87 @@ class VoiceRequestOutputTests(unittest.TestCase):
         out = ps.VoiceOutput(mode="draft", integrity_status="LOOKS_FINE")
         errors = out.validate()
         self.assertTrue(any("integrity_status" in e for e in errors))
+
+
+class VoiceRequestV1CompatibilityTests(unittest.TestCase):
+    def test_draft_task_maps_through(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "draft", "genre": "research-article",
+        })
+        self.assertEqual(req.task, "draft")
+        self.assertEqual(req.genre, "research-article")
+
+    def test_adapt_to_journal_maps_to_journal_adapt(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "adapt-to-journal", "genre": "research-article",
+        })
+        self.assertEqual(req.task, "journal_adapt")
+
+    def test_calibrate_author_voice_maps_to_author_voice(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "calibrate-author-voice", "genre": "book-chapter",
+        })
+        self.assertEqual(req.task, "author_voice")
+
+    def test_continue_chapter_maps_to_book_chapter(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "continue-chapter", "genre": "book-chapter",
+        })
+        self.assertEqual(req.task, "book_chapter")
+
+    def test_audit_task_maps_to_audit_mode(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "audit", "genre": "research-article",
+        })
+        self.assertEqual(req.task, "audit")
+        self.assertEqual(req.validate(), [])
+
+    def test_wrong_protocol_rejected(self):
+        with self.assertRaises(ps.SchemaError):
+            ps.from_voice_request_v1({"protocol": "SOMETHING_ELSE_V1", "task": "draft"})
+
+    def test_unrecognized_task_rejected(self):
+        with self.assertRaises(ps.SchemaError):
+            ps.from_voice_request_v1({"protocol": "VOICE_REQUEST_V1", "task": "summarize"})
+
+    def test_constraints_pass_through(self):
+        req = ps.from_voice_request_v1({
+            "protocol": "VOICE_REQUEST_V1", "task": "draft", "genre": "review",
+            "constraints": {"word_limit": 4000},
+        })
+        self.assertEqual(req.constraints, {"word_limit": 4000})
+
+
+class VoiceOutputV1CompatibilityTests(unittest.TestCase):
+    def test_pass_state_maps_through(self):
+        envelope = ps.to_voice_output_v1(ps.VoiceOutput(mode="draft", output="Some prose."))
+        self.assertEqual(envelope, {
+            "protocol": "VOICE_OUTPUT_V1",
+            "output_text": "Some prose.",
+            "validation_state": "PASS",
+            "limitations": [],
+        })
+
+    def test_citation_uncertainty_collapses_to_blocked_by_missing_evidence(self):
+        out = ps.VoiceOutput(mode="revise", integrity_status="BLOCKED_BY_CITATION_UNCERTAINTY")
+        envelope = ps.to_voice_output_v1(out)
+        self.assertEqual(envelope["validation_state"], "BLOCKED_BY_MISSING_EVIDENCE")
+        self.assertTrue(any("BLOCKED_BY_CITATION_UNCERTAINTY" in limitation
+                             for limitation in envelope["limitations"]))
+
+    def test_argument_inconsistency_collapses_to_repair_required(self):
+        out = ps.VoiceOutput(mode="revise", integrity_status="BLOCKED_BY_ARGUMENT_INCONSISTENCY")
+        envelope = ps.to_voice_output_v1(out)
+        self.assertEqual(envelope["validation_state"], "REPAIR_REQUIRED")
+
+    def test_existing_limitations_are_preserved(self):
+        out = ps.VoiceOutput(mode="draft", limitations=["small sample corpus profile"])
+        envelope = ps.to_voice_output_v1(out)
+        self.assertIn("small sample corpus profile", envelope["limitations"])
+
+    def test_invalid_output_rejected(self):
+        with self.assertRaises(ps.SchemaError):
+            ps.to_voice_output_v1(ps.VoiceOutput(mode="draft", integrity_status="NOT_A_STATE"))
 
 
 if __name__ == "__main__":

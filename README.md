@@ -1,6 +1,6 @@
 # Scholarly Voice Engine
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue)
+![Version](https://img.shields.io/badge/version-1.0.1-blue)
 ![Agent Skill](https://img.shields.io/badge/type-Agent%20Skill-6f42c1)
 ![License](https://img.shields.io/badge/license-MIT-green)
 ![Disciplines](https://img.shields.io/badge/disciplines-14%2B-orange)

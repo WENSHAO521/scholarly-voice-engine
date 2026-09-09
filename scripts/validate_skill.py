@@ -98,6 +98,8 @@ def check_top_level() -> None:
     for name in REQUIRED_DIRS:
         if not (ROOT / name).is_dir():
             fail(f"missing required directory: {name}")
+    if not (ROOT / ".github" / "workflows" / "validate.yml").is_file():
+        fail("missing required file: .github/workflows/validate.yml")
 
 
 def parse_frontmatter(text: str) -> dict:

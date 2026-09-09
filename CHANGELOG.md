@@ -2,6 +2,49 @@
 
 All notable changes to this Skill are documented here.
 
+## [1.0.1] — 2026-09-09
+
+Compatibility audit against `scholarly-agent-suite`'s protocol schemas and
+sibling-Skill outputs, per the Suite's cross-repo alignment pass. No change
+to the v1.0 discipline/genre/argument content itself.
+
+### Fixed
+
+- `profile_schema.py`'s `CONFIDENCE_LEVELS` used `medium`; both
+  `scholarly-corpus-builder`'s actual profile output and the Suite's
+  `SCHOLARLY_PROFILE_V1` schema use `moderate`. A real corpus-builder
+  profile would have failed this Skill's own confidence validation.
+  Corrected the vocabulary in `profile_schema.py` and
+  `references/corpus-profile-integration.md`.
+- Added the missing `.github/workflows/validate.yml` CI (this repository
+  previously had none) running the validator, unit tests, and a packaging
+  dry run on every push/PR.
+
+### Added
+
+- `scripts/voice/profile_schema.py`: `from_voice_request_v1()` and
+  `to_voice_output_v1()` — an optional, additive translation layer between
+  this Skill's own conceptual `VOICE_REQUEST`/`VOICE_OUTPUT` contract and
+  the Suite's narrower `VOICE_REQUEST_V1`/`VOICE_OUTPUT_V1` orchestration
+  envelopes. This Skill has no hard dependency on the Suite or either
+  protocol.
+- `audit` added to `OUTPUT_MODES`: a read-only quality-audit pass over
+  `input_text`, distinct from the audit step every other mode already runs
+  before returning text. Needed because `VOICE_REQUEST_V1`'s `task` enum
+  includes `audit` and no existing mode covered "check but don't rewrite."
+- 15 new tests covering the confidence-vocabulary fix and both protocol
+  adapters (`tests/test_profile_schema.py`).
+- `references/integration.md` §Optional scholarly-agent-suite protocol
+  compatibility: records the audited state per protocol, including two
+  gaps left deliberately open rather than papered over —
+  `JOURNAL_STYLE_CONTEXT_V1` (this Skill's `journal_context` expects
+  `journal-fit-engine`'s adaptation-target shape, not that protocol's
+  official/observed-evidence shape; reconciling this needs a decision made
+  alongside `journal-fit-engine`'s still-pending fit-logic implementation)
+  and `CONTINUITY_STATE_V1` (`ContinuityLedger` has no serialization yet,
+  so it cannot be saved/restored across chapter-drafting sessions as that
+  protocol requires).
+
 ## [1.0.0] — 2026-09-09
 
 ### Added

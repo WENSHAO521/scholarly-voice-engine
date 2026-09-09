@@ -25,7 +25,7 @@ CLAIM_TYPES = (
     "formal",
 )
 
-CONFIDENCE_LEVELS = ("high", "medium", "low")
+CONFIDENCE_LEVELS = ("high", "moderate", "low")
 
 VOICE_DIMENSION_LEVELS = ("very_low", "low", "medium", "high", "very_high")
 
@@ -43,6 +43,13 @@ OUTPUT_MODES = (
     "book_chapter",
     "author_voice",
     "disciplinary_convert",
+    # A read-only quality-audit pass over input_text (references/quality-
+    # audit.md) that reports findings without drafting/revising prose --
+    # distinct from the audit step every other mode already runs before
+    # returning text (SKILL.md step 13). Added for VOICE_REQUEST_V1
+    # interop: the Suite's task enum includes "audit" and no existing mode
+    # covers "check but don't rewrite."
+    "audit",
 )
 
 QUALITY_STATES = (
@@ -193,3 +200,92 @@ class VoiceOutput:
         errors: list[str] = []
         _check_enum(self.integrity_status, QUALITY_STATES, "integrity_status", errors)
         return errors
+
+
+# --- Optional scholarly-agent-suite protocol interoperability -------------
+#
+# This Skill's own conceptual VOICE_REQUEST/VOICE_OUTPUT contract above
+# (references/integration.md) is the authoritative, tested shape; it works
+# standalone with no Suite present. The functions below are an additive,
+# optional translation layer for a host that speaks the Suite's narrower
+# orchestration-envelope protocols (VOICE_REQUEST_V1 / VOICE_OUTPUT_V1,
+# additionalProperties: false) -- this Skill never requires them and never
+# rewrites its own internal fields to match them.
+
+# Suite's coarse orchestrator-facing `task` -> this Skill's own richer
+# OUTPUT_MODES. "audit" is not looked up here: it maps 1:1 by name (both
+# use the literal string "audit"), included in OUTPUT_MODES above.
+VOICE_REQUEST_V1_TASK_MAP = {
+    "draft": "draft",
+    "revise": "revise",
+    "audit": "audit",
+    "adapt-to-journal": "journal_adapt",
+    "calibrate-author-voice": "author_voice",
+    "continue-chapter": "book_chapter",
+}
+
+# This Skill's own integrity_status states -> VOICE_OUTPUT_V1's narrower
+# validation_state enum (which has no citation/argument-specific states).
+# Both refined states still surface in VoiceOutput.limitations so nothing
+# is silently lost in translation.
+_VOICE_OUTPUT_V1_STATE_MAP = {
+    "PASS": "PASS",
+    "PASS_WITH_LIMITATIONS": "PASS_WITH_LIMITATIONS",
+    "REPAIR_REQUIRED": "REPAIR_REQUIRED",
+    "BLOCKED_BY_MISSING_EVIDENCE": "BLOCKED_BY_MISSING_EVIDENCE",
+    "BLOCKED_BY_CITATION_UNCERTAINTY": "BLOCKED_BY_MISSING_EVIDENCE",
+    "BLOCKED_BY_ARGUMENT_INCONSISTENCY": "REPAIR_REQUIRED",
+}
+
+
+def from_voice_request_v1(data: dict) -> VoiceRequest:
+    """Translate an incoming VOICE_REQUEST_V1 envelope (see
+    scholarly-agent-suite/protocols/voice-request.schema.json) into this
+    Skill's own VoiceRequest. Raises SchemaError on an unrecognized
+    protocol/task or a resulting request that fails VoiceRequest.validate().
+    """
+    if data.get("protocol") != "VOICE_REQUEST_V1":
+        raise SchemaError(f"not a VOICE_REQUEST_V1 envelope: protocol={data.get('protocol')!r}")
+    task = data.get("task")
+    mode = VOICE_REQUEST_V1_TASK_MAP.get(task)
+    if mode is None:
+        raise SchemaError(f"unrecognized VOICE_REQUEST_V1 task: {task!r}")
+
+    request = VoiceRequest(
+        task=mode,
+        discipline=data.get("discipline"),
+        genre=data.get("genre"),
+        constraints=dict(data.get("constraints") or {}),
+    )
+    errors = request.validate()
+    if errors:
+        raise SchemaError("; ".join(errors))
+    return request
+
+
+def to_voice_output_v1(output: VoiceOutput) -> dict:
+    """Translate this Skill's own VoiceOutput into a VOICE_OUTPUT_V1 envelope
+    (see scholarly-agent-suite/protocols/voice-output.schema.json). The two
+    citation/argument-specific integrity_status values collapse onto the
+    nearest VOICE_OUTPUT_V1 state, with that narrowing recorded in
+    `limitations` so it is never silently lost.
+    """
+    errors = output.validate()
+    if errors:
+        raise SchemaError("; ".join(errors))
+
+    limitations = list(output.limitations)
+    validation_state = _VOICE_OUTPUT_V1_STATE_MAP[output.integrity_status]
+    if output.integrity_status in ("BLOCKED_BY_CITATION_UNCERTAINTY", "BLOCKED_BY_ARGUMENT_INCONSISTENCY"):
+        limitations.append(
+            f"original integrity_status was {output.integrity_status}, "
+            f"reported as {validation_state} for VOICE_OUTPUT_V1 compatibility"
+        )
+
+    envelope = {
+        "protocol": "VOICE_OUTPUT_V1",
+        "output_text": output.output,
+        "validation_state": validation_state,
+        "limitations": limitations,
+    }
+    return envelope
