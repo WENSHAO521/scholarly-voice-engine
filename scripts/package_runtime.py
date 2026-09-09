@@ -2,7 +2,7 @@
 """Package this Skill's runtime files into a distributable zip.
 
 Bundles SKILL.md, README.md, LICENSE, CHANGELOG.md, VERSION, agents/,
-references/, disciplines/, and scripts/ into
+assets/, references/, disciplines/, and scripts/ into
 dist/scholarly-voice-engine-<version>.zip. Excludes tests/ and evals/ —
 those are development-only, not needed by a host loading this Skill.
 
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parent.parent
 PACKAGE_NAME = "scholarly-voice-engine"
 
 RUNTIME_FILES = ["SKILL.md", "README.md", "LICENSE", "CHANGELOG.md", "VERSION"]
-RUNTIME_DIRS = ["agents", "references", "disciplines", "scripts"]
+RUNTIME_DIRS = ["agents", "assets", "references", "disciplines", "scripts"]
 
 # Never ship bytecode caches even though scripts/ is included for
 # scripts/voice/*.py.

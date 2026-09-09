@@ -7,8 +7,8 @@
 ![Tests](https://img.shields.io/badge/tests-45%20passing-brightgreen)
 ![Eval cases](https://img.shields.io/badge/eval%20cases-131-informational)
 
-*Argument architecture, evidence discipline, and voice synthesis for
-scholars — not another AI-flavored paraphraser.*
+*Discipline-aware argument architecture and evidence-disciplined voice
+synthesis for scholarly writing — not generic AI paraphrasing.*
 
 **Scholarly Voice Engine is a cross-disciplinary Agent Skill for producing
 discipline-aware, genre-aware, intellectually structured academic prose.** It
@@ -42,33 +42,19 @@ applying one universal "academic style."
 
 ## How it thinks
 
-Voice is the last thing decided, not the first. Discipline, genre, research
-design, and argument shape are all resolved before a single sentence is
-drafted — and every draft passes through integrity guards before it ships:
+Voice is resolved last, not first. Discipline, genre, research design, and
+argument architecture are all settled before a single sentence is drafted,
+and every draft still passes through integrity guards before it ships.
 
-```mermaid
-flowchart TD
-    A["Task and editing mode"] --> B["Discipline and subfield"]
-    B --> C["Genre"]
-    C --> D["Research design"]
-    D --> E["Argument architecture"]
-    E --> F["Audience and language"]
-    F --> G["Voice profile: primary + secondary + depth"]
-    G --> H{"Author sample or\ncorpus profile available?"}
-    H -- yes --> I["Calibrate to author / corpus voice"]
-    H -- no --> J["Use discipline defaults"]
-    I --> K{"Journal target available?"}
-    J --> K
-    K -- yes --> L["Adapt framing and structure only"]
-    K -- no --> M["Draft or revise"]
-    L --> M
-    M --> N["Citation integrity + claim calibration guards"]
-    N --> O["Quality audit: integrity tests, generic-AI audit"]
-    O --> P{"Quality state"}
-    P -- PASS --> Q["Return publication-ready prose"]
-    P -- REPAIR_REQUIRED --> M
-    P -- "BLOCKED_BY_*" --> R["Report the blocker — never paper over it"]
-```
+![The Voice Engine's drafting pipeline: resolve discipline, genre, research design, and argument architecture; assemble a voice profile; calibrate to an author or corpus profile when available; adapt to a journal target when available; draft; run citation-integrity and quality-audit guards; then pass, repair, or report a blocker.](assets/pipeline-diagram.svg)
+
+*Fig. 1 — An author or corpus profile, when available, calibrates voice; a
+journal target adapts framing and structure, never substance. Citation-
+integrity and claim-calibration guards run before the quality audit decides
+whether the draft ships, loops back for repair, or is reported as blocked
+rather than shipped anyway. An
+[interactive version](https://claude.ai/code/artifact/6a2be627-df15-4be8-be19-e32ad1204e21)
+of this figure is also available.*
 
 Full step-by-step detail lives in `SKILL.md` §Operating hierarchy; the guard
 rails are `references/citation-integrity.md`, `references/claim-calibration.md`,
@@ -94,18 +80,12 @@ and `references/quality-audit.md`.
 Four skills, four non-overlapping jobs — this one owns only how the argument
 and prose get built:
 
-```mermaid
-flowchart LR
-    R["Adaptive Model Router\nhow the task is executed"]
-    C["Scholarly Corpus Builder\nwhat evidence and profiles exist"]
-    V(["Scholarly Voice Engine\nhow the argument and prose are built"])
-    J["Journal Fit Engine\nwhere the manuscript belongs"]
+![Ecosystem diagram: the Adaptive Model Router's execution strategy is advisory only; the Scholarly Corpus Builder sends the Voice Engine a profile; the Journal Fit Engine sends it a compact adaptation target and receives the finished manuscript back.](assets/ecosystem-diagram.svg)
 
-    C -- "profile: author / discipline / journal / historical" --> V
-    J -- "compact adaptation target" --> V
-    R -. "execution strategy, never overridden" .-> V
-    V -- "drafted / revised manuscript" --> J
-```
+*Fig. 2 — The Corpus Builder supplies a profile and the Journal Fit Engine
+supplies a compact adaptation target and receives the finished manuscript
+back; the Router's execution strategy is advisory only. No sibling ever
+decides how this Skill argues or writes.*
 
 This Skill consumes `scholarly-corpus-builder` profiles and
 `journal-fit-engine` adaptation targets when those Skills are present, and
@@ -125,6 +105,9 @@ scholarly-voice-engine/
 ├── VERSION
 ├── agents/
 │   └── openai.yaml                   # optional cross-runtime agent descriptor
+├── assets/
+│   ├── pipeline-diagram.svg          # Fig. 1 — the drafting pipeline
+│   └── ecosystem-diagram.svg         # Fig. 2 — ecosystem position
 ├── references/
 │   ├── voice-engine.md               # voice-dimension schema, composite profiles
 │   ├── disciplinary-matrix.md        # discipline routing table
@@ -242,8 +225,8 @@ python scripts/package_runtime.py
 
 Produces `dist/scholarly-voice-engine-<version>.zip` from `VERSION` plus the
 runtime files (`SKILL.md`, `README.md`, `LICENSE`, `CHANGELOG.md`, `VERSION`,
-`agents/`, `references/`, `disciplines/`, `scripts/`) — `tests/` and `evals/`
-are development-only and excluded.
+`agents/`, `assets/`, `references/`, `disciplines/`, `scripts/`) — `tests/`
+and `evals/` are development-only and excluded.
 
 ## Known limitations
 
